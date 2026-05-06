@@ -103,7 +103,7 @@ export function DeliveryModule({ clientId, initialOrders = [] }: Props) {
     setPendingAction(action);
 
     try {
-      const res = await fetch(`http://127.0.0.1:5000${endpoint}`, {
+      const res = await fetch(`https://automation-system-production-2711.up.railway.app${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
