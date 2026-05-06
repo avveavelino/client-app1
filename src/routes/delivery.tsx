@@ -17,7 +17,7 @@ export const Route = createFileRoute("/delivery")({
   }),
 });
 
-const CLIENT_ID = 1;
+const CLIENT_ID = "1";
 
 const VALID_STATUSES: DeliveryStatus[] = [
   "pending",
@@ -66,7 +66,7 @@ function DeliveryPage() {
 
         const data = await res.json();
         const list: any[] = Array.isArray(data) ? data : [];
-        const client = list.find((c) => String(c?.id) === String(CLIENT_ID));
+        const client = list[0];
 
         if (!client) {
           setOrders([]);
