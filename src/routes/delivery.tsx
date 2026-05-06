@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/shell/AppShell";
 import { DeliveryModule } from "@/modules/delivery";
-import DeliveryIntroAnimation from "@/DeliveryIntroAnimation";
+import DeliveryIntroAnimation from "@/routes/DeliveryIntroAnimation";
 import type { DeliveryOrder, DeliveryStatus } from "@/modules/delivery/types";
 
 const API_URL = "https://automation-system-production-2711.up.railway.app";
