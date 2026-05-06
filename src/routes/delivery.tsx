@@ -4,9 +4,9 @@ import { AppShell } from "@/components/shell/AppShell";
 import { DeliveryModule } from "@/modules/delivery";
 import DeliveryIntroAnimation from "@/components/DeliveryIntroAnimation";
 import type { DeliveryOrder, DeliveryStatus } from "@/modules/delivery/types";
-
+ 
 const API_URL = "https://automation-system-production-2711.up.railway.app";
-
+ 
 export const Route = createFileRoute("/delivery")({
   component: DeliveryPage,
   head: () => ({
@@ -16,9 +16,10 @@ export const Route = createFileRoute("/delivery")({
     ],
   }),
 });
-
-const CLIENT_ID = "1";
-
+ 
+// ✅ FIXED: keep numeric ID (matches backend most likely)
+const CLIENT_ID = 1;
+ 
 const VALID_STATUSES: DeliveryStatus[] = [
   "pending",
   "in_route",
@@ -26,13 +27,13 @@ const VALID_STATUSES: DeliveryStatus[] = [
   "delivered",
   "done",
 ];
-
+ 
 function toDeliveryStatus(raw: unknown): DeliveryStatus {
   return VALID_STATUSES.includes(raw as DeliveryStatus)
     ? (raw as DeliveryStatus)
     : "pending";
 }
-
+ 
 function transformOrder(o: any): DeliveryOrder {
   return {
     id: String(o.id),
@@ -47,39 +48,47 @@ function transformOrder(o: any): DeliveryOrder {
     deliveryNote: o.delivery_note,
   };
 }
-
+ 
 function DeliveryPage() {
   const [orders, setOrders] = useState<DeliveryOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showIntro, setShowIntro] = useState(true);
-
+ 
   useEffect(() => {
     const failsafe = setTimeout(() => {
       setIsLoading(false);
     }, 5000);
-
+ 
     const fetchOrders = async () => {
       try {
         const res = await fetch(`${API_URL}/clients`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
+ 
         const data = await res.json();
         const list: any[] = Array.isArray(data) ? data : [];
-        const client = list[0];
-
+ 
+        // ✅ FIXED: proper matching again (IMPORTANT)
+        const client = list.find(
+          (c) => String(c?.id) === String(CLIENT_ID)
+        );
+ 
+        console.log("CLIENT LIST:", list);
+        console.log("SELECTED CLIENT:", client);
+ 
         if (!client) {
           setOrders([]);
           setIsLoading(false);
           return;
         }
-
+ 
         const grouped = client.orders_grouped ?? {};
+ 
         const raw: any[] = [
           ...(grouped.this_week ?? []),
           ...(grouped.last_week ?? []),
         ];
-
+ 
         setOrders(raw.map(transformOrder));
         setIsLoading(false);
       } catch (e: any) {
@@ -88,20 +97,18 @@ function DeliveryPage() {
         setIsLoading(false);
       }
     };
-
+ 
     fetchOrders();
-
-    return () => {
-      clearTimeout(failsafe);
-    };
+ 
+    return () => clearTimeout(failsafe);
   }, []);
-
+ 
   return (
     <AppShell>
       {showIntro && (
         <DeliveryIntroAnimation onDone={() => setShowIntro(false)} />
-     )}
-
+      )}
+ 
       {!showIntro && (
         <DeliveryModule clientId={CLIENT_ID} initialOrders={orders} />
       )}
