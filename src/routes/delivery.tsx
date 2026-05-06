@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/shell/AppShell";
 import { DeliveryModule } from "@/modules/delivery";
+import DeliveryIntroAnimation from "@/components/DeliveryIntroAnimation";
 import type { DeliveryOrder, DeliveryStatus } from "@/modules/delivery/types";
 
-const API_URL = "https://automation-system-production-2711.up.railway.app";
+const API_URL = "http://127.0.0.1:5000";
 
 export const Route = createFileRoute("/delivery")({
   component: DeliveryPage,
@@ -51,9 +52,9 @@ function DeliveryPage() {
   const [orders, setOrders] = useState<DeliveryOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showIntro, setShowIntro] = useState(true);
 
   useEffect(() => {
-    // Safety net: never let the loading state hang past 5 seconds
     const failsafe = setTimeout(() => {
       setIsLoading(false);
     }, 5000);
@@ -64,16 +65,10 @@ function DeliveryPage() {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
         const data = await res.json();
-        console.log("RAW DATA:", data);
-
         const list: any[] = Array.isArray(data) ? data : [];
-        console.log("CLIENT LIST:", list);
-
         const client = list.find((c) => String(c?.id) === String(CLIENT_ID));
-        console.log("FOUND CLIENT:", client);
 
         if (!client) {
-          console.warn("CLIENT NOT FOUND");
           setOrders([]);
           setIsLoading(false);
           return;
@@ -85,10 +80,7 @@ function DeliveryPage() {
           ...(grouped.last_week ?? []),
         ];
 
-        const mapped = raw.map(transformOrder);
-        console.log("MAPPED ORDERS:", mapped);
-
-        setOrders(mapped);
+        setOrders(raw.map(transformOrder));
         setIsLoading(false);
       } catch (e: any) {
         console.error("Failed to load orders:", e);
@@ -99,18 +91,121 @@ function DeliveryPage() {
 
     fetchOrders();
 
-    return () => clearTimeout(failsafe);
+    return () => {
+      clearTimeout(failsafe);
+    };
   }, []);
 
   return (
     <AppShell>
-      {isLoading ? (
-        <p className="text-sm text-muted-foreground">Loading…</p>
-      ) : error ? (
-        <p className="text-sm text-destructive">Error: {error}</p>
-      ) : (
-        <DeliveryModule clientId={CLIENT_ID} initialOrders={orders} />
+      {showIntro && (
+        <DeliveryIntroAnimation onDone={() => setShowIntro(false)} />
+      )}
+ 
+      {!showIntro && (
+        isLoading ? (
+          <p className="text-sm text-muted-foreground">Loading…</p>
+        ) : error ? (
+          <p className="text-sm text-destructive">Error: {error}</p>
+        ) : (
+          <DeliveryModule clientId={CLIENT_ID} initialOrders={orders} />
+        )
       )}
     </AppShell>
+  );
+}
+
+function EntryVan() {
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none fixed inset-0 z-50 overflow-hidden"
+    >
+      <div
+        style={{
+          width: "140px",
+          height: "80px",
+          position: "absolute",
+          top: "0",
+          left: "0",
+          offsetPath:
+            "path('M -180 50vh L 30vw 50vh Q 50vw 50vh, 50vw 35vh Q 50vw 20vh, 30vw 20vh Q 10vw 20vh, 30vw 50vh L calc(100vw + 200px) 50vh')",
+          offsetRotate: "auto",
+          animation: "vanEntry 3.5s ease-in-out forwards",
+        }}
+      >
+        <div style={{ animation: "vanBob 0.4s ease-in-out infinite" }}>
+          <svg width="140" height="80" viewBox="0 0 140 80" fill="none">
+            <ellipse cx="70" cy="73" rx="55" ry="2.5" fill="#000" opacity="0.12" />
+            <rect
+              x="10"
+              y="22"
+              width="70"
+              height="40"
+              rx="3"
+              fill="#fef3c7"
+              stroke="#92400e"
+              strokeWidth="1.5"
+            />
+            <rect x="10" y="40" width="70" height="3" fill="#f59e0b" />
+            <path
+              d="M80 30 L110 30 L122 45 L122 62 L80 62 Z"
+              fill="#dc2626"
+              stroke="#7f1d1d"
+              strokeWidth="1.5"
+            />
+            <path
+              d="M85 33 L107 33 L116 45 L85 45 Z"
+              fill="#bae6fd"
+              stroke="#0c4a6e"
+              strokeWidth="1"
+            />
+            <g
+              style={{
+                transformOrigin: "30px 64px",
+                animation: "vanWheelSpin 0.4s linear infinite",
+              }}
+            >
+              <circle cx="30" cy="64" r="8" fill="#1c1917" />
+              <circle cx="30" cy="64" r="3" fill="#78716c" />
+              <line x1="30" y1="56" x2="30" y2="72" stroke="#78716c" strokeWidth="1" />
+              <line x1="22" y1="64" x2="38" y2="64" stroke="#78716c" strokeWidth="1" />
+            </g>
+            <g
+              style={{
+                transformOrigin: "100px 64px",
+                animation: "vanWheelSpin 0.4s linear infinite",
+              }}
+            >
+              <circle cx="100" cy="64" r="8" fill="#1c1917" />
+              <circle cx="100" cy="64" r="3" fill="#78716c" />
+              <line x1="100" y1="56" x2="100" y2="72" stroke="#78716c" strokeWidth="1" />
+              <line x1="92" y1="64" x2="108" y2="64" stroke="#78716c" strokeWidth="1" />
+            </g>
+            <ellipse
+              cx="45"
+              cy="33"
+              rx="5"
+              ry="6.5"
+              fill="#fff"
+              stroke="#92400e"
+              strokeWidth="1"
+            />
+            <text
+              x="45"
+              y="56"
+              textAnchor="middle"
+              fontSize="9"
+              fontWeight="700"
+              fill="#92400e"
+              fontFamily="system-ui"
+            >
+              ÄGG
+            </text>
+            <circle cx="121" cy="55" r="2" fill="#fef9c3" />
+          </svg>
+        </div>
+      </div>
+    </div>
   );
 }
