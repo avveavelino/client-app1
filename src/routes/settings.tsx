@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Settings as SettingsIcon } from "lucide-react";
-import { AppShell } from "@/components/shell/AppShell";
+import { AppShell } from "../components/shell/AppShell";
 import { Section } from "@/components/shell/Section";
 import { EmptyState } from "@/components/shell/EmptyState";
  
