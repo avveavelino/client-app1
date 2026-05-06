@@ -2,10 +2,10 @@ import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/shell/AppShell";
 import { DeliveryModule } from "@/modules/delivery";
-import DeliveryIntroAnimation from "@/components/DeliveryIntroAnimation";
+import DeliveryIntroAnimation from "@/DeliveryIntroAnimation";
 import type { DeliveryOrder, DeliveryStatus } from "@/modules/delivery/types";
 
-const API_URL = "http://127.0.0.1:5000";
+const API_URL = "https://automation-system-production-2711.up.railway.app";
 
 export const Route = createFileRoute("/delivery")({
   component: DeliveryPage,
