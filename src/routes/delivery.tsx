@@ -100,16 +100,10 @@ function DeliveryPage() {
     <AppShell>
       {showIntro && (
         <DeliveryIntroAnimation onDone={() => setShowIntro(false)} />
-      )}
- 
+     )}
+
       {!showIntro && (
-        isLoading ? (
-          <p className="text-sm text-muted-foreground">Loading…</p>
-        ) : error ? (
-          <p className="text-sm text-destructive">Error: {error}</p>
-        ) : (
-          <DeliveryModule clientId={CLIENT_ID} initialOrders={orders} />
-        )
+        <DeliveryModule clientId={CLIENT_ID} initialOrders={orders} />
       )}
     </AppShell>
   );
