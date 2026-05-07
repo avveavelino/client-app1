@@ -12,6 +12,7 @@ interface Props {
   allowDeliveryUpdates?: boolean;
   allowRouteOptimization?: boolean;
   allowRouteStart?: boolean;
+  contactFlags?: { sms: boolean; call: boolean; email: boolean };
 }
 
 const ACTION_ENDPOINT: Record<DeliveryAction, string> = {
@@ -55,6 +56,7 @@ export function DeliveryModule({
   allowDeliveryUpdates = true,
   allowRouteOptimization = true,
   allowRouteStart = true,
+  contactFlags = { sms: true, call: true, email: true },
 }: Props) {
   const [orders, setOrders] = useState<DeliveryOrder[]>(initialOrders);
   const [selected, setSelected] = useState<Set<string>>(new Set());

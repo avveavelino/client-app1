@@ -7,6 +7,9 @@ import { useEffect, useState } from "react";
  * with a backend-synced version: keep field names stable so the JSON shape
  * here can be lifted directly into a `client.settings_ui` object on the
  * backend without renames.
+ *
+ * Each settings group is an opt-in module (e.g. customerContact). Future
+ * clients may disable entire modules — keep that pattern as we add more.
  */
 
 export interface ClientSettings {
@@ -28,6 +31,13 @@ export interface ClientSettings {
   // Ruttoptimering
   allowRouteOptimization: boolean;
   allowRouteStart: boolean;
+
+  // Kundkontakt — controls SMS / Ring / E-post buttons in Delivery rows.
+  // Module pattern: master flag + per-channel sub-flags. Easy to extend.
+  customerContactActive: boolean;
+  allowCustomerSms: boolean;
+  allowCustomerCall: boolean;
+  allowCustomerEmail: boolean;
 }
 
 export const DEFAULT_SETTINGS: ClientSettings = {
@@ -40,6 +50,10 @@ export const DEFAULT_SETTINGS: ClientSettings = {
   showOldOrders: false,
   allowRouteOptimization: true,
   allowRouteStart: true,
+  customerContactActive: true,
+  allowCustomerSms: true,
+  allowCustomerCall: true,
+  allowCustomerEmail: true,
 };
 
 const STORAGE_KEY = "client-app1.settings.v1";
@@ -65,16 +79,11 @@ function saveToStorage(settings: ClientSettings) {
   }
 }
 
-/**
- * useSettings — shared client settings, persisted to localStorage,
- * synced live across tabs via the `storage` event.
- */
 export function useSettings() {
   const [settings, setSettings] = useState<ClientSettings>(() =>
     loadFromStorage(),
   );
 
-  // Keep tabs in sync if user changes settings in another tab.
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
       if (e.key === STORAGE_KEY) {
@@ -110,4 +119,19 @@ export function useSettings() {
   };
 
   return { settings, update, updateMany, reset };
+}
+
+/**
+ * Helper: resolve which customer contact channels are currently usable.
+ * Returns flags consumed by OrderRow / Delivery components.
+ *
+ * Master OFF ⇒ all OFF, regardless of sub-flags.
+ */
+export function resolveContactFlags(s: ClientSettings) {
+  const masterOn = s.customerContactActive;
+  return {
+    sms: masterOn && s.allowCustomerSms,
+    call: masterOn && s.allowCustomerCall,
+    email: masterOn && s.allowCustomerEmail,
+  };
 }

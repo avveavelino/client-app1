@@ -7,9 +7,15 @@ interface Props {
   order: DeliveryOrder;
   selected: boolean;
   onToggle: (id: string) => void;
+  contactFlags?: { sms: boolean; call: boolean; email: boolean };
 }
 
-export function OrderRow({ order, selected, onToggle }: Props) {
+export function OrderRow({
+  order,
+  selected,
+  onToggle,
+  contactFlags = { sms: true, call: true, email: true },
+}: Props) {
   const hasProducts = !!order.products && order.products.length > 0;
   const hasContactActions = !!order.phone || !!order.email;
 
@@ -99,8 +105,16 @@ export function OrderRow({ order, selected, onToggle }: Props) {
           <div className="space-y-1.5 pt-1">
             {order.phone && (
               <div className="grid grid-cols-2 gap-1.5">
-                <ContactButton href={`sms:${order.phone}`} label="SMS" />
-                <ContactButton href={`tel:${order.phone}`} label="Ring" />
+                <ContactButton
+                  href={`sms:${order.phone}`}
+                  label="SMS"
+                  disabled={!contactFlags.sms}
+                />
+                <ContactButton
+                  href={`tel:${order.phone}`}
+                  label="Ring"
+                  disabled={!contactFlags.call}
+                />
               </div>
             )}
             {order.email && (
@@ -108,6 +122,7 @@ export function OrderRow({ order, selected, onToggle }: Props) {
                 href={`mailto:${order.email}`}
                 label="E-post"
                 fullWidth
+                disabled={!contactFlags.email}
               />
             )}
           </div>
@@ -140,18 +155,34 @@ function ContactButton({
   href,
   label,
   fullWidth,
+  disabled,
 }: {
   href: string;
   label: string;
   fullWidth?: boolean;
+  disabled?: boolean;
 }) {
+  const baseClass =
+    "flex items-center justify-center rounded-lg border px-3 py-2 text-xs font-medium transition-all duration-150";
+
+  if (disabled) {
+    return (
+      <span
+        aria-disabled="true"
+        title="Avstängd i inställningar"
+        onClick={(e) => e.stopPropagation()}
+        className={`${baseClass} pointer-events-none border-stone-200 bg-stone-50 text-stone-400 ${fullWidth ? "w-full" : ""}`}
+      >
+        {label}
+      </span>
+    );
+  }
+
   return (
-    <a
+    
       href={href}
       onClick={(e) => e.stopPropagation()}
-      className={`flex items-center justify-center rounded-lg border border-border bg-background px-3 py-2 text-xs font-medium text-foreground transition-all duration-150 hover:-translate-y-px hover:border-stone-300 hover:bg-stone-50 active:translate-y-0 active:bg-stone-100 ${
-        fullWidth ? "w-full" : ""
-      }`}
+      className={`${baseClass} border-border bg-background text-foreground hover:-translate-y-px hover:border-stone-300 hover:bg-stone-50 active:translate-y-0 active:bg-stone-100 ${fullWidth ? "w-full" : ""}`}
     >
       {label}
     </a>

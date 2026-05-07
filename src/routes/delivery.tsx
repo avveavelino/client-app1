@@ -4,7 +4,7 @@ import { AppShell } from "@/components/shell/AppShell";
 import { DeliveryModule } from "@/modules/delivery";
 import DeliveryIntroAnimation from "@/components/DeliveryIntroAnimation";
 import type { DeliveryOrder, DeliveryStatus } from "@/modules/delivery/types";
-import { useSettings } from "@/lib/settings-store";
+import { useSettings, resolveContactFlags } from "@/lib/settings-store";
 
 const API_URL = "https://automation-system-production-2711.up.railway.app";
 
@@ -51,6 +51,8 @@ function transformOrder(o: any): DeliveryOrder {
 
 function DeliveryPage() {
   const { settings } = useSettings();
+  const contactFlags = resolveContactFlags(settings);
+
   const [orders, setOrders] = useState<DeliveryOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -96,8 +98,7 @@ function DeliveryPage() {
     return () => clearTimeout(failsafe);
   }, []);
 
-  // Apply display-only filtering from settings (safe to drop here — backend
-  // is the source of truth, this only narrows what's shown).
+  // Display-only filtering (settings narrow what's shown).
   const visibleOrders = orders.filter((o) => {
     if (!settings.showCompletedOrders && (o.status === "delivered" || o.status === "done")) {
       return false;
@@ -118,6 +119,7 @@ function DeliveryPage() {
           allowDeliveryUpdates={settings.deliveryUpdates}
           allowRouteOptimization={settings.allowRouteOptimization}
           allowRouteStart={settings.allowRouteStart}
+          contactFlags={contactFlags}
         />
       )}
     </AppShell>
