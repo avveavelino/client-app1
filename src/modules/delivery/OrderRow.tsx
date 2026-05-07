@@ -1,4 +1,4 @@
-import { Mail, Phone, MapPin, Package, Coins, Truck, StickyNote } from "lucide-react";
+import { Mail, Phone, MapPin, Package, Truck, StickyNote } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { StatusBadge } from "./StatusBadge";
 import type { DeliveryOrder } from "./types";
