@@ -191,6 +191,7 @@ export function DeliveryModule({
             order={o}
             selected={selected.has(o.id)}
             onToggle={toggle}
+            contactFlags={contactFlags}
           />
         </li>
       ))}
