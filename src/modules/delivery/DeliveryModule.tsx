@@ -9,6 +9,9 @@ import type { DeliveryOrder, DeliveryStatus } from "./types";
 interface Props {
   clientId: number;
   initialOrders?: DeliveryOrder[];
+  allowDeliveryUpdates?: boolean;
+  allowRouteOptimization?: boolean;
+  allowRouteStart?: boolean;
 }
 
 const ACTION_ENDPOINT: Record<DeliveryAction, string> = {
@@ -27,6 +30,8 @@ const ACTION_TOAST: Record<DeliveryAction, string> = {
   end: "Rutt avslutad",
 };
 
+const API_URL = "https://automation-system-production-2711.up.railway.app";
+
 function startOfThisWeek(now = new Date()): Date {
   const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const dayOfWeek = d.getDay();
@@ -44,12 +49,23 @@ function isThisWeek(deliveryDate: string | undefined, weekStart: Date): boolean 
 
 type Celebration = "van" | "egg" | null;
 
-export function DeliveryModule({ clientId, initialOrders = [] }: Props) {
+export function DeliveryModule({
+  clientId,
+  initialOrders = [],
+  allowDeliveryUpdates = true,
+  allowRouteOptimization = true,
+  allowRouteStart = true,
+}: Props) {
   const [orders, setOrders] = useState<DeliveryOrder[]>(initialOrders);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [pendingAction, setPendingAction] = useState<DeliveryAction | null>(null);
   const [lastWeekOpen, setLastWeekOpen] = useState(false);
   const [celebration, setCelebration] = useState<Celebration>(null);
+
+  // Keep local list in sync if parent changes the filter (e.g. settings toggled)
+  useEffect(() => {
+    setOrders(initialOrders);
+  }, [initialOrders]);
 
   const allSelected = orders.length > 0 && selected.size === orders.length;
 
@@ -64,7 +80,6 @@ export function DeliveryModule({ clientId, initialOrders = [] }: Props) {
     return { thisWeek, lastWeek };
   }, [orders]);
 
-  // Auto-clear celebration after animation completes
   useEffect(() => {
     if (!celebration) return;
     const t = setTimeout(() => setCelebration(null), celebration === "van" ? 3200 : 2200);
@@ -103,7 +118,7 @@ export function DeliveryModule({ clientId, initialOrders = [] }: Props) {
     setPendingAction(action);
 
     try {
-      const res = await fetch(`https://automation-system-production-2711.up.railway.app${endpoint}`, {
+      const res = await fetch(`${API_URL}${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -211,13 +226,15 @@ export function DeliveryModule({ clientId, initialOrders = [] }: Props) {
           0%, 100% { transform: translateY(0); }
           50%      { transform: translateY(-3px); }
         }
-        @keyframes peckLeft {
-          0%, 60%, 100% { transform: rotate(0deg); }
-          70%, 80%      { transform: rotate(-12deg); }
-        }
       `}</style>
 
-      <DeliveryActions selectedCount={selected.size} onAction={handleAction} />
+      <DeliveryActions
+        selectedCount={selected.size}
+        onAction={handleAction}
+        allowDeliveryUpdates={allowDeliveryUpdates}
+        allowRouteOptimization={allowRouteOptimization}
+        allowRouteStart={allowRouteStart}
+      />
 
       {orders.length === 0 ? (
         <EggEmptyState />
@@ -268,7 +285,6 @@ export function DeliveryModule({ clientId, initialOrders = [] }: Props) {
         </>
       )}
 
-      {/* Celebration overlay */}
       {celebration === "van" && <DeliveryVanAnimation />}
       {celebration === "egg" && <RollingEggAnimation />}
     </div>
@@ -297,10 +313,6 @@ function SectionHeader({
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Empty state — friendly chick on a basket                           */
-/* ------------------------------------------------------------------ */
-
 function EggEmptyState() {
   return (
     <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-stone-200 bg-stone-50/50 px-6 py-12 text-center">
@@ -317,65 +329,28 @@ function EggEmptyState() {
 
 function ChickIllustration() {
   return (
-    <svg
-      width="96"
-      height="80"
-      viewBox="0 0 96 80"
-      fill="none"
-      aria-hidden
-      className="text-amber-400"
-    >
-      {/* Shadow */}
+    <svg width="96" height="80" viewBox="0 0 96 80" fill="none" aria-hidden className="text-amber-400">
       <ellipse cx="48" cy="74" rx="22" ry="2.5" fill="#000" opacity="0.08" />
-
-      {/* Basket */}
-      <path
-        d="M22 60 L74 60 L70 72 L26 72 Z"
-        fill="#d6a26a"
-        stroke="#a47445"
-        strokeWidth="1.2"
-      />
+      <path d="M22 60 L74 60 L70 72 L26 72 Z" fill="#d6a26a" stroke="#a47445" strokeWidth="1.2" />
       <path d="M22 60 L74 60" stroke="#a47445" strokeWidth="1.2" />
       {[28, 36, 44, 52, 60, 68].map((x) => (
-        <line
-          key={x}
-          x1={x}
-          y1={60}
-          x2={x - 1}
-          y2={72}
-          stroke="#a47445"
-          strokeWidth="0.8"
-        />
+        <line key={x} x1={x} y1={60} x2={x - 1} y2={72} stroke="#a47445" strokeWidth="0.8" />
       ))}
-
-      {/* Eggs in basket */}
       <ellipse cx="34" cy="58" rx="6" ry="7" fill="#fff8ec" stroke="#e8d5a8" strokeWidth="0.8" />
       <ellipse cx="48" cy="56" rx="6" ry="7" fill="#fff8ec" stroke="#e8d5a8" strokeWidth="0.8" />
       <ellipse cx="62" cy="58" rx="6" ry="7" fill="#fff8ec" stroke="#e8d5a8" strokeWidth="0.8" />
-
-      {/* Chick — bobbing */}
       <g style={{ animation: "chickBob 3s ease-in-out infinite", transformOrigin: "48px 35px" }}>
-        {/* body */}
         <ellipse cx="48" cy="38" rx="14" ry="12" fill="#fcd34d" />
-        {/* head */}
         <circle cx="48" cy="24" r="9" fill="#fcd34d" />
-        {/* wing */}
         <path d="M40 38 Q44 34 48 38 Q44 44 40 42 Z" fill="#f59e0b" opacity="0.5" />
-        {/* beak */}
         <path d="M55 24 L60 25 L55 27 Z" fill="#f97316" />
-        {/* eye */}
         <circle cx="51" cy="22" r="1.4" fill="#1c1917" />
-        {/* tiny feet peeking */}
         <line x1="44" y1="49" x2="44" y2="52" stroke="#f97316" strokeWidth="1.4" strokeLinecap="round" />
         <line x1="52" y1="49" x2="52" y2="52" stroke="#f97316" strokeWidth="1.4" strokeLinecap="round" />
       </g>
     </svg>
   );
 }
-
-/* ------------------------------------------------------------------ */
-/* Delivery van — drives across the screen on "Starta rutt"           */
-/* ------------------------------------------------------------------ */
 
 function DeliveryVanAnimation() {
   return (
@@ -386,25 +361,11 @@ function DeliveryVanAnimation() {
     >
       <div style={{ animation: "vanBounce 0.4s ease-in-out infinite" }}>
         <svg width="140" height="80" viewBox="0 0 140 80" fill="none">
-          {/* Ground shadow */}
           <ellipse cx="70" cy="73" rx="55" ry="2.5" fill="#000" opacity="0.12" />
-
-          {/* Cargo box */}
           <rect x="10" y="22" width="70" height="40" rx="3" fill="#fef3c7" stroke="#92400e" strokeWidth="1.5" />
-          {/* Cargo box stripe */}
           <rect x="10" y="40" width="70" height="3" fill="#f59e0b" />
-
-          {/* Cab */}
-          <path
-            d="M80 30 L110 30 L122 45 L122 62 L80 62 Z"
-            fill="#dc2626"
-            stroke="#7f1d1d"
-            strokeWidth="1.5"
-          />
-          {/* Window */}
+          <path d="M80 30 L110 30 L122 45 L122 62 L80 62 Z" fill="#dc2626" stroke="#7f1d1d" strokeWidth="1.5" />
           <path d="M85 33 L107 33 L116 45 L85 45 Z" fill="#bae6fd" stroke="#0c4a6e" strokeWidth="1" />
-
-          {/* Wheels */}
           <g style={{ transformOrigin: "30px 64px", animation: "wheelSpin 0.4s linear infinite" }}>
             <circle cx="30" cy="64" r="8" fill="#1c1917" />
             <circle cx="30" cy="64" r="3" fill="#78716c" />
@@ -417,24 +378,16 @@ function DeliveryVanAnimation() {
             <line x1="100" y1="56" x2="100" y2="72" stroke="#78716c" strokeWidth="1" />
             <line x1="92" y1="64" x2="108" y2="64" stroke="#78716c" strokeWidth="1" />
           </g>
-
-          {/* Egg logo on cargo box */}
           <ellipse cx="45" cy="33" rx="5" ry="6.5" fill="#fff" stroke="#92400e" strokeWidth="1" />
           <text x="45" y="56" textAnchor="middle" fontSize="9" fontWeight="700" fill="#92400e" fontFamily="system-ui">
             ÄGG
           </text>
-
-          {/* Headlight */}
           <circle cx="121" cy="55" r="2" fill="#fef9c3" />
         </svg>
       </div>
     </div>
   );
 }
-
-/* ------------------------------------------------------------------ */
-/* Rolling egg — celebrates "Avsluta rutt"                            */
-/* ------------------------------------------------------------------ */
 
 function RollingEggAnimation() {
   return (
@@ -445,16 +398,7 @@ function RollingEggAnimation() {
     >
       <svg width="36" height="44" viewBox="0 0 36 44" fill="none">
         <ellipse cx="18" cy="36" rx="14" ry="2" fill="#000" opacity="0.1" />
-        <ellipse
-          cx="18"
-          cy="22"
-          rx="13"
-          ry="17"
-          fill="#fff8ec"
-          stroke="#d4a574"
-          strokeWidth="1.2"
-        />
-        {/* speckles */}
+        <ellipse cx="18" cy="22" rx="13" ry="17" fill="#fff8ec" stroke="#d4a574" strokeWidth="1.2" />
         <circle cx="14" cy="18" r="1" fill="#d4a574" opacity="0.6" />
         <circle cx="22" cy="14" r="0.8" fill="#d4a574" opacity="0.6" />
         <circle cx="20" cy="28" r="0.8" fill="#d4a574" opacity="0.6" />
