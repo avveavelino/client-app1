@@ -4,7 +4,13 @@ import { Inbox, Bell } from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
 import { Section } from "@/components/shell/Section";
 import { EmptyState } from "@/components/shell/EmptyState";
- 
+import { OrderRow } from "@/modules/delivery/OrderRow";
+import type { DeliveryOrder, DeliveryStatus } from "@/modules/delivery/types";
+import { useSettings, resolveContactFlags } from "@/lib/settings-store";
+
+const API_URL = "https://automation-system-production-2711.up.railway.app";
+const CLIENT_ID = 1;
+
 export const Route = createFileRoute("/")({
   component: Index,
   head: () => ({
@@ -14,60 +20,97 @@ export const Route = createFileRoute("/")({
     ],
   }),
 });
- 
+
+const VALID_STATUSES: DeliveryStatus[] = [
+  "pending",
+  "in_route",
+  "delivering",
+  "delivered",
+  "done",
+];
+
+function toDeliveryStatus(raw: unknown): DeliveryStatus {
+  return VALID_STATUSES.includes(raw as DeliveryStatus)
+    ? (raw as DeliveryStatus)
+    : "pending";
+}
+
+function transformOrder(o: any): DeliveryOrder {
+  return {
+    id: String(o.id),
+    customerName: o.name ?? "",
+    address: o.address ?? "",
+    status: toDeliveryStatus(o.status),
+    deliveryDate: o.delivery_date ?? o.order_date,
+    email: o.email,
+    phone: o.phone,
+    products: Array.isArray(o.products) ? o.products : undefined,
+    price: o.price,
+    deliveryNote: o.delivery_note,
+  };
+}
+
 function Index() {
-  const [orders, setOrders] = useState<any[]>([]);
- 
+  const { settings } = useSettings();
+  const contactFlags = resolveContactFlags(settings);
+  const [orders, setOrders] = useState<DeliveryOrder[]>([]);
+
   useEffect(() => {
-    fetch("http://127.0.0.1:5000/clients")
+    fetch(`${API_URL}/clients`)
       .then((res) => res.json())
       .then((data) => {
-        const client = data.find((c: any) => c.id === 1);
-        if (client && client.orders) {
-          setOrders(client.orders);
+        const list: any[] = Array.isArray(data) ? data : [];
+        const client = list.find((c) => String(c?.id) === String(CLIENT_ID));
+        if (!client) {
+          setOrders([]);
+          return;
         }
+        const grouped = client.orders_grouped ?? {};
+        const raw: any[] = [
+          ...(grouped.this_week ?? []),
+          ...(grouped.last_week ?? []),
+        ];
+        setOrders(raw.map(transformOrder));
       })
       .catch((err) => console.error("Failed to fetch orders:", err));
   }, []);
- 
-  const statusMap: Record<string, string> = {
-    pending: "Väntar",
-    in_route: "På rutt",
-    delivering: "På väg",
-    delivered: "Levererad",
-    done: "Klar",
-  };
- 
+
+  const visibleOrders = orders.filter((o) => {
+    if (
+      !settings.showCompletedOrders &&
+      (o.status === "delivered" || o.status === "done")
+    ) {
+      return false;
+    }
+    return true;
+  });
+
   return (
     <AppShell>
       <div className="space-y-6">
         <Section title="Beställningar & Aktivitet">
-          {orders.length === 0 ? (
+          {visibleOrders.length === 0 ? (
             <EmptyState
               icon={<Inbox className="h-5 w-5" />}
               title="Inga beställningar"
               description="Din aktivitet visas här."
             />
           ) : (
-            <ul className="space-y-2">
-              {orders.map((o) => (
-                <li
-                  key={o.id}
-                  className="rounded-lg border border-border p-3"
-                >
-                  <p className="font-medium">{o.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {o.address}
-                  </p>
-                  <p className="text-xs mt-1 text-muted-foreground">
-                    {statusMap[o.status] || o.status}
-                  </p>
+            <ul className="space-y-2.5">
+              {visibleOrders.map((o) => (
+                <li key={o.id}>
+                  <OrderRow
+                    order={o}
+                    selected={false}
+                    onToggle={() => {}}
+                    contactFlags={contactFlags}
+                  />
                 </li>
               ))}
             </ul>
           )}
         </Section>
- 
+
         <Section title="Meddelanden & Notiser">
           <EmptyState
             icon={<Bell className="h-5 w-5" />}
