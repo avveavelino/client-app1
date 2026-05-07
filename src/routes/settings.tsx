@@ -35,12 +35,7 @@ export const Route = createFileRoute("/settings")({
 
 function SettingsPage() {
   const { settings, update, updateMany } = useSettings();
-
-  // Sub-toggles only matter when the master is on.
-  // Display toggles (showCompletedOrders/showOldOrders) are NEVER tied to it.
   const subDisabled = !settings.automationActive;
-
-  // Customer contact module has its own master.
   const contactSubDisabled = !settings.customerContactActive;
 
   const handlePauseAll = () => {
@@ -48,7 +43,6 @@ function SettingsPage() {
       "Är du säker på att du vill pausa all automation?\n\nDetta stänger av alla automatiska funktioner direkt.",
     );
     if (!confirmed) return;
-
     updateMany({
       automationActive: false,
       autoReplies: false,
@@ -69,7 +63,7 @@ function SettingsPage() {
           </p>
         </header>
 
-        {/* ---------- 1. SYSTEMKONTROLL ---------- */}
+        {/* 1. SYSTEMKONTROLL */}
         <Card className="rounded-2xl border-border/70 shadow-sm">
           <CardHeader>
             <div className="flex items-center gap-2">
@@ -88,7 +82,6 @@ function SettingsPage() {
               checked={settings.automationActive}
               onChange={(v) => update("automationActive", v)}
             />
-
             <div
               className={`rounded-lg px-3 py-2.5 text-xs font-medium ring-1 ring-inset transition-colors ${
                 settings.automationActive
@@ -110,7 +103,7 @@ function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* ---------- 2. E-POSTAUTOMATION ---------- */}
+        {/* 2. E-POSTAUTOMATION */}
         <Card className="rounded-2xl border-border/70 shadow-sm">
           <CardHeader>
             <div className="flex items-center gap-2">
@@ -127,4 +120,225 @@ function SettingsPage() {
               onChange={(v) => update("autoReplies", v)}
               disabled={subDisabled}
             />
-            <Separa
+            <Separator className="my-2" />
+            <SettingRow
+              id="order_confirmations"
+              title="Skicka orderbekräftelser"
+              description="Kunder får automatiska orderbekräftelser via e-post."
+              checked={settings.orderConfirmations}
+              onChange={(v) => update("orderConfirmations", v)}
+              disabled={subDisabled}
+            />
+          </CardContent>
+        </Card>
+
+        {/* 3. LEVERANSNOTISER */}
+        <Card className="rounded-2xl border-border/70 shadow-sm">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Truck className="h-4 w-4 text-emerald-600" />
+              <CardTitle className="text-base">Leveransnotiser</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-1">
+            <SettingRow
+              id="delivery_updates"
+              title="Skicka leveransuppdateringar"
+              description="Kunder meddelas när beställningar levereras."
+              checked={settings.deliveryUpdates}
+              onChange={(v) => update("deliveryUpdates", v)}
+              disabled={subDisabled}
+            />
+            <Separator className="my-2" />
+            <SettingRow
+              id="sms_notifications"
+              title="Aktivera SMS-notiser"
+              description="Tillåt SMS-uppdateringar när telefonnummer finns."
+              checked={settings.smsNotifications}
+              onChange={(v) => update("smsNotifications", v)}
+              disabled={subDisabled}
+            />
+          </CardContent>
+        </Card>
+
+        {/* 4. RUTTOPTIMERING */}
+        <Card className="rounded-2xl border-border/70 shadow-sm">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <RouteIcon className="h-4 w-4 text-violet-600" />
+              <CardTitle className="text-base">Ruttoptimering</CardTitle>
+            </div>
+            <CardDescription>
+              Styr vilka leveransknappar som är tillgängliga.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-1">
+            <SettingRow
+              id="allow_route_optimization"
+              title="Tillåt ruttoptimering"
+              description="Aktiverar knappen Optimera rutt."
+              checked={settings.allowRouteOptimization}
+              onChange={(v) => update("allowRouteOptimization", v)}
+              disabled={subDisabled}
+            />
+            <Separator className="my-2" />
+            <SettingRow
+              id="allow_route_start"
+              title="Tillåt ruttstart"
+              description="Aktiverar knapparna Starta rutt och Avsluta rutt."
+              checked={settings.allowRouteStart}
+              onChange={(v) => update("allowRouteStart", v)}
+              disabled={subDisabled}
+            />
+          </CardContent>
+        </Card>
+
+        {/* 5. KUNDKONTAKT */}
+        <Card className="rounded-2xl border-border/70 shadow-sm">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-sky-600" />
+              <CardTitle className="text-base">Kundkontakt</CardTitle>
+            </div>
+            <CardDescription>
+              Styr hur kunder kan kontaktas från leveransvyn.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <SettingRow
+              id="customer_contact_active"
+              title="Kundkontakt aktiv"
+              checked={settings.customerContactActive}
+              onChange={(v) => update("customerContactActive", v)}
+            />
+            <Separator />
+            <div className="space-y-1">
+              <SettingRow
+                id="allow_customer_sms"
+                title="Tillåt SMS"
+                description="Aktiverar SMS-knappen i leveranskorten."
+                checked={settings.allowCustomerSms}
+                onChange={(v) => update("allowCustomerSms", v)}
+                disabled={contactSubDisabled}
+              />
+              <Separator className="my-2" />
+              <SettingRow
+                id="allow_customer_call"
+                title="Tillåt samtal"
+                description="Aktiverar Ring-knappen i leveranskorten."
+                checked={settings.allowCustomerCall}
+                onChange={(v) => update("allowCustomerCall", v)}
+                disabled={contactSubDisabled}
+              />
+              <Separator className="my-2" />
+              <SettingRow
+                id="allow_customer_email"
+                title="Tillåt e-post"
+                description="Aktiverar E-post-knappen i leveranskorten."
+                checked={settings.allowCustomerEmail}
+                onChange={(v) => update("allowCustomerEmail", v)}
+                disabled={contactSubDisabled}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 6. ORDERVISNING */}
+        <Card className="rounded-2xl border-border/70 shadow-sm">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Eye className="h-4 w-4 text-stone-600" />
+              <CardTitle className="text-base">Ordervisning</CardTitle>
+            </div>
+            <CardDescription>
+              Styr vilka beställningar som visas i leveransöversikten.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-1">
+            <SettingRow
+              id="show_completed_orders"
+              title="Visa slutförda beställningar"
+              checked={settings.showCompletedOrders}
+              onChange={(v) => update("showCompletedOrders", v)}
+            />
+            <Separator className="my-2" />
+            <SettingRow
+              id="show_old_orders"
+              title="Visa äldre beställningar"
+              checked={settings.showOldOrders}
+              onChange={(v) => update("showOldOrders", v)}
+            />
+          </CardContent>
+        </Card>
+
+        {/* 7. SÄKERHET */}
+        <Card className="rounded-2xl border-rose-200 bg-rose-50/30 shadow-sm">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <TriangleAlert className="h-4 w-4 text-rose-600" />
+              <CardTitle className="text-base text-rose-900">Säkerhet</CardTitle>
+            </div>
+            <CardDescription className="text-rose-800/80">
+              Detta pausar omedelbart alla automatiska funktioner tills de
+              aktiveras igen.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button
+              type="button"
+              variant="destructive"
+              size="lg"
+              onClick={handlePauseAll}
+              className="w-full gap-2"
+            >
+              <Power className="h-4 w-4" />
+              Pausa all automation
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    </AppShell>
+  );
+}
+
+function SettingRow({
+  id,
+  title,
+  description,
+  checked,
+  onChange,
+  disabled,
+}: {
+  id: string;
+  title: string;
+  description?: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <div
+      className={`flex items-start justify-between gap-4 py-2 transition-opacity ${
+        disabled ? "opacity-50" : "opacity-100"
+      }`}
+    >
+      <div className="min-w-0 flex-1">
+        <Label
+          htmlFor={id}
+          className={`text-sm font-medium ${disabled ? "" : "cursor-pointer"}`}
+        >
+          {title}
+        </Label>
+        {description && (
+          <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
+        )}
+      </div>
+      <Switch
+        id={id}
+        checked={checked}
+        onCheckedChange={onChange}
+        disabled={disabled}
+      />
+    </div>
+  );
+}
