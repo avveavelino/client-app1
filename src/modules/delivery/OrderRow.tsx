@@ -215,7 +215,7 @@ function ContactButton({
   }
 
   return (
-    
+    <a
       href={href}
       onClick={(e) => e.stopPropagation()}
       className={`${baseClass} border-border bg-background text-foreground hover:-translate-y-px hover:border-stone-300 hover:bg-stone-50 active:translate-y-0 active:bg-stone-100 ${fullWidth ? "w-full" : ""}`}
