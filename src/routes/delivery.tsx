@@ -41,6 +41,7 @@ function transformOrder(o: any): DeliveryOrder {
     address: o.address ?? "",
     status: toDeliveryStatus(o.status),
     deliveryDate: o.delivery_date ?? o.order_date,
+    deliveryDateText: o.delivery_date_text,
     email: o.email,
     phone: o.phone,
     products: Array.isArray(o.products) ? o.products : undefined,
@@ -98,7 +99,6 @@ function DeliveryPage() {
     return () => clearTimeout(failsafe);
   }, []);
 
-  // Display-only filtering (settings narrow what's shown).
   const visibleOrders = orders.filter((o) => {
     if (!settings.showCompletedOrders && (o.status === "delivered" || o.status === "done")) {
       return false;

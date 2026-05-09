@@ -1,4 +1,5 @@
-import { Mail, Phone, MapPin, Package, Truck, StickyNote } from "lucide-react";
+import { useState } from "react";
+import { Mail, Phone, MapPin, Package, Truck, StickyNote, ChevronDown } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { StatusBadge } from "./StatusBadge";
 import type { DeliveryOrder } from "./types";
@@ -16,8 +17,13 @@ export function OrderRow({
   onToggle,
   contactFlags = { sms: true, call: true, email: true },
 }: Props) {
+  const [expanded, setExpanded] = useState(false);
+
   const hasProducts = !!order.products && order.products.length > 0;
   const hasContactActions = !!order.phone || !!order.email;
+
+  // Show customer's actual answer; fall back to ISO if no text was parsed.
+  const displayDate = order.deliveryDateText || order.deliveryDate;
 
   return (
     <label
@@ -43,6 +49,7 @@ export function OrderRow({
       />
 
       <div className="min-w-0 flex-1 space-y-2">
+        {/* ----- Header: name + price + status ----- */}
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
             <p className="truncate text-[15px] font-semibold text-foreground">
@@ -57,51 +64,78 @@ export function OrderRow({
           <StatusBadge status={order.status} />
         </div>
 
+        {/* ----- COMPACT BODY (always visible) ----- */}
         <div className="space-y-1 text-xs text-muted-foreground">
           {order.address && (
             <Detail icon={<MapPin className="h-3.5 w-3.5" />}>
-              <span className="truncate">{order.address}</span>
+              <span className={expanded ? "" : "truncate"}>{order.address}</span>
             </Detail>
           )}
 
-          {order.deliveryDate && (
+          {displayDate && (
             <Detail icon={<Truck className="h-3.5 w-3.5" />}>
-              {order.deliveryDate}
-            </Detail>
-          )}
-
-          {hasProducts && (
-            <Detail icon={<Package className="h-3.5 w-3.5" />} multiline>
-              <ul className="space-y-0.5">
-                {order.products!.map((p, i) => (
-                  <li key={i}>
-                    {p.name} <span className="text-stone-400">×</span> {p.quantity}
-                  </li>
-                ))}
-              </ul>
-            </Detail>
-          )}
-
-          {order.email && (
-            <Detail icon={<Mail className="h-3.5 w-3.5" />}>
-              <span className="truncate">{order.email}</span>
-            </Detail>
-          )}
-
-          {order.phone && (
-            <Detail icon={<Phone className="h-3.5 w-3.5" />}>
-              {order.phone}
-            </Detail>
-          )}
-
-          {order.deliveryNote && (
-            <Detail icon={<StickyNote className="h-3.5 w-3.5" />}>
-              <span className="truncate">{order.deliveryNote}</span>
+              {displayDate}
             </Detail>
           )}
         </div>
 
-        {hasContactActions && (
+        {/* ----- EXPANDED BODY (toggleable) ----- */}
+        {expanded && (
+          <div className="space-y-1 border-t border-stone-100 pt-2 text-xs text-muted-foreground">
+            {hasProducts && (
+              <Detail icon={<Package className="h-3.5 w-3.5" />} multiline>
+                <ul className="space-y-0.5">
+                  {order.products!.map((p, i) => (
+                    <li key={i}>
+                      {p.name} <span className="text-stone-400">×</span> {p.quantity}
+                    </li>
+                  ))}
+                </ul>
+              </Detail>
+            )}
+
+            {order.email && (
+              <Detail icon={<Mail className="h-3.5 w-3.5" />}>
+                <span className="break-all">{order.email}</span>
+              </Detail>
+            )}
+
+            {order.phone && (
+              <Detail icon={<Phone className="h-3.5 w-3.5" />}>
+                {order.phone}
+              </Detail>
+            )}
+
+            {order.deliveryNote && (
+              <Detail icon={<StickyNote className="h-3.5 w-3.5" />} multiline>
+                <span className="whitespace-pre-wrap break-words">
+                  {order.deliveryNote}
+                </span>
+              </Detail>
+            )}
+          </div>
+        )}
+
+        {/* ----- Toggle button ----- */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setExpanded((v) => !v);
+          }}
+          className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-[11px] font-medium text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-700"
+        >
+          {expanded ? "Visa mindre" : "Visa mer"}
+          <ChevronDown
+            className={`h-3 w-3 transition-transform duration-200 ${
+              expanded ? "rotate-180" : ""
+            }`}
+          />
+        </button>
+
+        {/* ----- Contact buttons (only when expanded) ----- */}
+        {expanded && hasContactActions && (
           <div className="space-y-1.5 pt-1">
             {order.phone && (
               <div className="grid grid-cols-2 gap-1.5">
@@ -179,7 +213,7 @@ function ContactButton({
   }
 
   return (
-    <a
+    
       href={href}
       onClick={(e) => e.stopPropagation()}
       className={`${baseClass} border-border bg-background text-foreground hover:-translate-y-px hover:border-stone-300 hover:bg-stone-50 active:translate-y-0 active:bg-stone-100 ${fullWidth ? "w-full" : ""}`}

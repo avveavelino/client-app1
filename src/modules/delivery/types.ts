@@ -15,7 +15,8 @@ export interface DeliveryOrder {
   customerName: string;
   address: string;
   status: DeliveryStatus;
-  deliveryDate?: string;
+  deliveryDate?: string;       // ISO YYYY-MM-DD — internal use only
+  deliveryDateText?: string;   // Display string — what the customer wrote
   email?: string;
   phone?: string;
   products?: OrderProduct[];
