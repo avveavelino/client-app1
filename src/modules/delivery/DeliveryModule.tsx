@@ -147,10 +147,42 @@ export function DeliveryModule({
             toast.error("Kunde inte optimera rutt");
             return;
           }
-          const url =
-            "https://www.google.com/maps/dir/" +
-            route.map((a) => encodeURIComponent(String(a))).join("/");
-          window.open(url, "_blank");
+
+          // Build Google Maps directions URL using the official format that
+          // deep-links into the Maps app on iOS/Android and works on desktop.
+          // https://developers.google.com/maps/documentation/urls/get-started#directions-action
+          const stops = route.map((a) => String(a).trim()).filter(Boolean);
+
+          if (stops.length < 2) {
+            toast.error("Behöver minst två stopp för att skapa rutt");
+            return;
+          }
+
+          const origin = encodeURIComponent(stops[0]);
+          const destination = encodeURIComponent(stops[stops.length - 1]);
+          const waypoints = stops
+            .slice(1, -1)
+            .map((s) => encodeURIComponent(s))
+            .join("|");
+
+          const params = new URLSearchParams();
+          params.set("api", "1");
+          params.set("travelmode", "driving");
+
+          // Build the URL manually so | in waypoints doesn't get re-encoded.
+          let url =
+            `https://www.google.com/maps/dir/?api=1` +
+            `&origin=${origin}` +
+            `&destination=${destination}` +
+            `&travelmode=driving`;
+
+          if (waypoints) {
+            url += `&waypoints=${waypoints}`;
+          }
+
+          // Same-tab navigation. window.open with _blank can be blocked by
+          // mobile browsers and prevents the deep-link to the Maps app.
+          window.location.href = url;
           break;
         }
         case "start":
