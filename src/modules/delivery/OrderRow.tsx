@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Mail, Phone, MapPin, Package, Truck, StickyNote, ChevronDown } from "lucide-react";
+import { Mail, Phone, MapPin, Package, CalendarDays, StickyNote, ChevronDown } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { StatusBadge } from "./StatusBadge";
 import type { DeliveryOrder } from "./types";
@@ -22,7 +22,7 @@ export function OrderRow({
   const hasProducts = !!order.products && order.products.length > 0;
   const hasContactActions = !!order.phone || !!order.email;
 
-  // Show customer's actual answer; fall back to ISO if no text was parsed.
+  // Customer's actual answer always wins. Fall back to ISO only if no text exists.
   const displayDate = order.deliveryDateText || order.deliveryDate;
 
   return (
@@ -49,7 +49,7 @@ export function OrderRow({
       />
 
       <div className="min-w-0 flex-1 space-y-2">
-        {/* ----- Header: name + price + status ----- */}
+        {/* Header: name + price + status */}
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
             <p className="truncate text-[15px] font-semibold text-foreground">
@@ -64,7 +64,7 @@ export function OrderRow({
           <StatusBadge status={order.status} />
         </div>
 
-        {/* ----- COMPACT BODY (always visible) ----- */}
+        {/* Compact body — always visible */}
         <div className="space-y-1 text-xs text-muted-foreground">
           {order.address && (
             <Detail icon={<MapPin className="h-3.5 w-3.5" />}>
@@ -73,13 +73,15 @@ export function OrderRow({
           )}
 
           {displayDate && (
-            <Detail icon={<Truck className="h-3.5 w-3.5" />}>
-              {displayDate}
+            <Detail icon={<CalendarDays className="h-3.5 w-3.5" />} multiline={expanded}>
+              <span className={expanded ? "whitespace-pre-wrap break-words" : "truncate block"}>
+                {displayDate}
+              </span>
             </Detail>
           )}
         </div>
 
-        {/* ----- EXPANDED BODY (toggleable) ----- */}
+        {/* Expanded body */}
         {expanded && (
           <div className="space-y-1 border-t border-stone-100 pt-2 text-xs text-muted-foreground">
             {hasProducts && (
@@ -116,7 +118,7 @@ export function OrderRow({
           </div>
         )}
 
-        {/* ----- Toggle button ----- */}
+        {/* Toggle */}
         <button
           type="button"
           onClick={(e) => {
@@ -134,7 +136,7 @@ export function OrderRow({
           />
         </button>
 
-        {/* ----- Contact buttons (only when expanded) ----- */}
+        {/* Contact buttons — only when expanded */}
         {expanded && hasContactActions && (
           <div className="space-y-1.5 pt-1">
             {order.phone && (
