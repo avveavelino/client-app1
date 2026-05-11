@@ -49,12 +49,19 @@ export function OrderRow({
       />
 
       <div className="min-w-0 flex-1 space-y-2">
-        {/* Header: name + price + status */}
+        {/* Header: name + order date + price + status */}
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[15px] font-semibold text-foreground">
-              {order.customerName}
-            </p>
+            <div className="flex items-baseline gap-2">
+              <p className="truncate text-[15px] font-semibold text-foreground">
+                {order.customerName}
+              </p>
+              {order.orderDate && (
+                <p className="shrink-0 text-[11px] text-stone-400">
+                  ({formatOrderDate(order.orderDate)})
+                </p>
+              )}
+            </div>
             {order.price && (
               <p className="mt-0.5 text-xs font-medium text-stone-600">
                 {order.price}
@@ -69,14 +76,6 @@ export function OrderRow({
           {order.address && (
             <Detail icon={<MapPin className="h-3.5 w-3.5" />}>
               <span className={expanded ? "" : "truncate"}>{order.address}</span>
-            </Detail>
-          )}
-
-          {displayDate && (
-            <Detail icon={<CalendarDays className="h-3.5 w-3.5" />} multiline={expanded}>
-              <span className={expanded ? "whitespace-pre-wrap break-words" : "truncate block"}>
-                {displayDate}
-              </span>
             </Detail>
           )}
         </div>
@@ -105,6 +104,14 @@ export function OrderRow({
             {order.phone && (
               <Detail icon={<Phone className="h-3.5 w-3.5" />}>
                 {order.phone}
+              </Detail>
+            )}
+
+            {displayDate && (
+              <Detail icon={<CalendarDays className="h-3.5 w-3.5" />} multiline>
+                <span className="whitespace-pre-wrap break-words">
+                  Önskad leverans: {displayDate}
+                </span>
               </Detail>
             )}
 
@@ -215,7 +222,7 @@ function ContactButton({
   }
 
   return (
-    <a
+    
       href={href}
       onClick={(e) => e.stopPropagation()}
       className={`${baseClass} border-border bg-background text-foreground hover:-translate-y-px hover:border-stone-300 hover:bg-stone-50 active:translate-y-0 active:bg-stone-100 ${fullWidth ? "w-full" : ""}`}
@@ -223,4 +230,15 @@ function ContactButton({
       {label}
     </a>
   );
+}
+
+function formatOrderDate(iso: string): string {
+  try {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return iso;
+    const months = ["jan", "feb", "mar", "apr", "maj", "jun", "jul", "aug", "sep", "okt", "nov", "dec"];
+    return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  } catch {
+    return iso;
+  }
 }

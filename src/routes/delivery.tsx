@@ -42,6 +42,7 @@ function transformOrder(o: any): DeliveryOrder {
     status: toDeliveryStatus(o.status),
     deliveryDate: o.delivery_date ?? o.order_date,
     deliveryDateText: o.delivery_date_text,
+    orderDate: o.order_date,
     email: o.email,
     phone: o.phone,
     products: Array.isArray(o.products) ? o.products : undefined,
