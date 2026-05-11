@@ -1,7 +1,3 @@
-Kod
-
-
-
 import { useState } from "react";
 import { Mail, Phone, MapPin, Package, CalendarDays, StickyNote, ChevronDown } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -52,7 +48,6 @@ export function OrderRow({
       />
 
       <div className="min-w-0 flex-1 space-y-2">
-        {/* Header: name + order date + price + status */}
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
             <div className="flex items-baseline gap-2">
@@ -74,7 +69,6 @@ export function OrderRow({
           <StatusBadge status={order.status} />
         </div>
 
-        {/* Compact body — always visible */}
         <div className="space-y-1 text-xs text-muted-foreground">
           {order.address && (
             <Detail icon={<MapPin className="h-3.5 w-3.5" />}>
@@ -83,7 +77,6 @@ export function OrderRow({
           )}
         </div>
 
-        {/* Expanded body */}
         {expanded && (
           <div className="space-y-1 border-t border-stone-100 pt-2 text-xs text-muted-foreground">
             {hasProducts && (
@@ -91,7 +84,7 @@ export function OrderRow({
                 <ul className="space-y-0.5">
                   {order.products!.map((p, i) => (
                     <li key={i}>
-                      {p.name} <span className="text-stone-400">×</span> {p.quantity}
+                      {p.name} <span className="text-stone-400">x</span> {p.quantity}
                     </li>
                   ))}
                 </ul>
@@ -113,7 +106,7 @@ export function OrderRow({
             {displayDate && (
               <Detail icon={<CalendarDays className="h-3.5 w-3.5" />} multiline>
                 <span className="whitespace-pre-wrap break-words">
-                  <span className="font-medium text-stone-600">Önskad leverans:</span> {displayDate}
+                  <span className="font-medium text-stone-600">{"\u00D6nskad leverans:"}</span> {displayDate}
                 </span>
               </Detail>
             )}
@@ -121,14 +114,13 @@ export function OrderRow({
             {order.deliveryNote && (
               <Detail icon={<StickyNote className="h-3.5 w-3.5" />} multiline>
                 <span className="whitespace-pre-wrap break-words">
-                  <span className="font-medium text-stone-600">Portkod och plats:</span> {order.deliveryNote}
+                  <span className="font-medium text-stone-600">{"Portkod och plats:"}</span> {order.deliveryNote}
                 </span>
               </Detail>
             )}
           </div>
         )}
 
-        {/* Toggle */}
         <button
           type="button"
           onClick={(e) => {
@@ -146,7 +138,6 @@ export function OrderRow({
           />
         </button>
 
-        {/* Contact buttons — only when expanded */}
         {expanded && hasContactActions && (
           <div className="space-y-1.5 pt-1">
             {order.phone && (
@@ -215,7 +206,7 @@ function ContactButton({
     return (
       <span
         aria-disabled="true"
-        title="Avstängd i inställningar"
+        title="Avstangd i installningar"
         onClick={(e) => e.stopPropagation()}
         className={`${baseClass} pointer-events-none border-stone-200 bg-stone-50 text-stone-400 ${fullWidth ? "w-full" : ""}`}
       >
