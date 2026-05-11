@@ -1,3 +1,7 @@
+Kod
+
+
+
 import { useState } from "react";
 import { Mail, Phone, MapPin, Package, CalendarDays, StickyNote, ChevronDown } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -22,7 +26,6 @@ export function OrderRow({
   const hasProducts = !!order.products && order.products.length > 0;
   const hasContactActions = !!order.phone || !!order.email;
 
-  // Customer's actual answer always wins. Fall back to ISO only if no text exists.
   const displayDate = order.deliveryDateText || order.deliveryDate;
 
   return (
@@ -110,7 +113,7 @@ export function OrderRow({
             {displayDate && (
               <Detail icon={<CalendarDays className="h-3.5 w-3.5" />} multiline>
                 <span className="whitespace-pre-wrap break-words">
-                  Önskad leverans: {displayDate}
+                  <span className="font-medium text-stone-600">Önskad leverans:</span> {displayDate}
                 </span>
               </Detail>
             )}
@@ -118,7 +121,7 @@ export function OrderRow({
             {order.deliveryNote && (
               <Detail icon={<StickyNote className="h-3.5 w-3.5" />} multiline>
                 <span className="whitespace-pre-wrap break-words">
-                  {order.deliveryNote}
+                  <span className="font-medium text-stone-600">Portkod och plats:</span> {order.deliveryNote}
                 </span>
               </Detail>
             )}
