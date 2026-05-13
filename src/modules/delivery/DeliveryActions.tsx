@@ -16,15 +16,17 @@ interface Props {
   allowRouteStart?: boolean;
 }
 
+// Actions that REQUIRE selecting orders first
 const ROUTE_ACTIONS = [
-  { id: "optimize", label: "Optimera rutt", icon: Route, variant: "outline" },
-  { id: "start", label: "Starta rutt", icon: Play, variant: "default" },
-  { id: "end", label: "Avsluta rutt", icon: Square, variant: "outline" },
+  { id: "optimize", label: "Optimera rutt", icon: Route, variant: "outline", needsSelection: true },
+  { id: "start", label: "Starta rutt", icon: Play, variant: "default", needsSelection: true },
+  { id: "end", label: "Avsluta rutt", icon: Square, variant: "outline", needsSelection: false },
 ] as const;
 
+// Actions that work automatically on all eligible orders
 const STATUS_ACTIONS = [
-  { id: "delivering", label: "Markera levererar", icon: Truck, variant: "secondary" },
-  { id: "delivered", label: "Markera levererad", icon: CheckCircle2, variant: "secondary" },
+  { id: "delivering", label: "Markera levererar", icon: Truck, variant: "secondary", needsSelection: false },
+  { id: "delivered", label: "Markera levererad", icon: CheckCircle2, variant: "secondary", needsSelection: false },
 ] as const;
 
 export function DeliveryActions({
@@ -36,7 +38,6 @@ export function DeliveryActions({
 }: Props) {
   const noSelection = selectedCount === 0;
 
-  // Per-action lockout from settings
   const isActionLocked = (id: DeliveryAction) => {
     if (id === "optimize" && !allowRouteOptimization) return true;
     if ((id === "start" || id === "end") && !allowRouteStart) return true;
@@ -70,7 +71,7 @@ export function DeliveryActions({
           {ROUTE_ACTIONS.map((a) => {
             const Icon = a.icon;
             const locked = isActionLocked(a.id);
-            const disabled = noSelection || locked;
+            const disabled = (a.needsSelection && noSelection) || locked;
             return (
               <Button
                 key={a.id}
@@ -92,7 +93,7 @@ export function DeliveryActions({
           {STATUS_ACTIONS.map((a) => {
             const Icon = a.icon;
             const locked = isActionLocked(a.id);
-            const disabled = noSelection || locked;
+            const disabled = (a.needsSelection && noSelection) || locked;
             return (
               <Button
                 key={a.id}
@@ -113,7 +114,7 @@ export function DeliveryActions({
 
       {noSelection && (
         <p className="mt-3 text-[11px] text-stone-400">
-          Välj minst en order för att aktivera åtgärder
+          Optimera rutt och Starta rutt kräver minst en vald order
         </p>
       )}
     </div>

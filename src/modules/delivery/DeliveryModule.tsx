@@ -108,7 +108,9 @@ export function DeliveryModule({
   };
 
   const handleAction = async (action: DeliveryAction) => {
-    if (selected.size === 0) {
+    // optimize and start require selection. Others work on all eligible orders.
+    const needsSelection = action === "optimize" || action === "start";
+    if (needsSelection && selected.size === 0) {
       toast.warning("Välj minst en order först");
       return;
     }
