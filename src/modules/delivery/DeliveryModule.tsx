@@ -192,10 +192,22 @@ export function DeliveryModule({
           setCelebration("van");
           break;
         case "delivering":
-          updateSelected("delivering");
+          setOrders((prev) =>
+            prev.map((o) =>
+              o.status === "in_route"
+                ? { ...o, status: "delivering" }
+                : o
+            )
+          );
           break;
         case "delivered":
-          updateSelected("delivered");
+          setOrders((prev) =>
+            prev.map((o) =>
+              o.status === "delivering"
+                ? { ...o, status: "delivered" }
+                : o
+           )
+          );
           break;
         case "end":
           updateSelected("done");
