@@ -101,8 +101,19 @@ function DeliveryPage() {
   }, []);
 
   const visibleOrders = orders.filter((o) => {
+    // Hide completed/done orders when setting is off
     if (!settings.showCompletedOrders && (o.status === "delivered" || o.status === "done")) {
       return false;
+    }
+    // Hide orders older than 7 days when setting is off
+    if (!settings.showOldOrders) {
+      if (o.deliveryDate) {
+        const t = new Date(o.deliveryDate).getTime();
+        if (!isNaN(t)) {
+          const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+          if (t < sevenDaysAgo) return false;
+        }
+      }
     }
     return true;
   });
