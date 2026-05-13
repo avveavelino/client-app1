@@ -35,11 +35,23 @@ function toDeliveryStatus(raw: unknown): DeliveryStatus {
 }
 
 function transformOrder(o: any): DeliveryOrder {
+  // route_status takes precedence over status for visual display
+  let displayStatus: DeliveryStatus;
+  if (o.status === "delivered" || o.status === "done") {
+    displayStatus = toDeliveryStatus(o.status);
+  } else if (o.status === "delivering") {
+    displayStatus = "delivering";
+  } else if (o.route_status === "in_route") {
+    displayStatus = "in_route";
+  } else {
+    displayStatus = toDeliveryStatus(o.status);
+  }
+
   return {
     id: String(o.id),
     customerName: o.name ?? "",
     address: o.address ?? "",
-    status: toDeliveryStatus(o.status),
+    status: displayStatus,
     deliveryDate: o.delivery_date ?? o.order_date,
     deliveryDateText: o.delivery_date_text,
     orderDate: o.order_date,
